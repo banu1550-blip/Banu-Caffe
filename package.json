@@ -1,0 +1,13 @@
+{
+  "name": "banu-cafe",
+  "version": "1.0.0",
+  "description": "Banu Cafe Project",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
+}
