@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş & Kayıt | Banu Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'forest': '#1d3c34',
+                        'gold': '#d4a373',
+                        'cream': '#faf7f2'
+                    },
+                    fontFamily: {
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                        'playfair': ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="font-montserrat bg-cream antialiased min-h-screen flex text-forest">
+
+    <!-- Sol Görsel Kısmı -->
+    <div class="hidden lg:flex lg:w-1/2 relative bg-forest items-center justify-center">
+        <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=1200&q=80&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" alt="Coffee">
+        <div class="absolute inset-0 bg-gradient-to-t from-forest via-forest/50 to-transparent"></div>
+        <div class="relative z-10 p-12 text-center text-white">
+            <a href="index.html" class="inline-flex items-center gap-3 group mb-8">
+                <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center transition-transform group-hover:rotate-12">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5A2,2 0 0,0 20,3Z"/>
+                    </svg>
+                </div>
+                <span class="text-3xl font-bold tracking-wider">BANU<span class="text-gold font-light ml-1">CAFE</span></span>
+            </a>
+            <h1 class="font-playfair text-4xl mb-4 text-white">Kahve Deneyimine Hoş Geldiniz</h1>
+            <p class="text-white/70 font-light max-w-sm mx-auto">Sadakat programımıza katılın, özel kampanya ve ödüllerin tadını çıkarın.</p>
+        </div>
+    </div>
+
+    <!-- Sağ Form Kısmı -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
+        <div class="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl shadow-xl relative overflow-hidden">
+            
+            <a href="index.html" class="lg:hidden flex items-center gap-2 mb-8 justify-center">
+                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5A2,2 0 0,0 20,3Z"/></svg>
+                </div>
+                <span class="text-xl font-bold tracking-wider text-forest">BANU<span class="text-gold font-light ml-1">CAFE</span></span>
+            </a>
+
+            <div class="flex p-1 mb-8 bg-forest/5 rounded-full">
+                <button type="button" id="toggle-login" class="flex-1 py-2.5 rounded-full text-sm font-semibold transition-all shadow-sm bg-white text-forest" onclick="switchMode('login')">Giriş Yap</button>
+                <button type="button" id="toggle-register" class="flex-1 py-2.5 rounded-full text-sm font-semibold transition-all text-forest/50 hover:text-forest" onclick="switchMode('register')">Kayıt Ol</button>
+            </div>
+
+            <div id="alert-box" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-5" onsubmit="handleAuth(event, 'login')">
+                <div class="text-left mb-6">
+                    <h2 class="font-playfair text-3xl text-forest mb-2">Tekrar Merhaba</h2>
+                    <p class="text-forest/60 text-sm">Hesabınıza giriş yaparak devam edin.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase tracking-wider mb-2">E-posta</label>
+                    <input type="email" id="login-email" required class="w-full px-5 py-3.5 bg-forest/5 border border-forest/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all" placeholder="ornek@mail.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase tracking-wider mb-2">Şifre</label>
+                    <input type="password" id="login-password" required class="w-full px-5 py-3.5 bg-forest/5 border border-forest/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-forest text-white py-4 rounded-xl font-semibold hover:bg-forest/90 transition-all shadow-lg hover:shadow-xl mt-4 flex justify-center items-center gap-2">
+                    Giriş Yap
+                </button>
+            </form>
+
+            <!-- Register Form (Hidden by default) -->
+            <form id="register-form" class="space-y-5 hidden" onsubmit="handleAuth(event, 'register')">
+                <div class="text-left mb-6">
+                    <h2 class="font-playfair text-3xl text-forest mb-2">Aramıza Katılın</h2>
+                    <p class="text-forest/60 text-sm">Sadece birkaç saniyede hesabınızı oluşturun.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase tracking-wider mb-2">Ad Soyad</label>
+                    <input type="text" id="register-name" required class="w-full px-5 py-3.5 bg-forest/5 border border-forest/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all" placeholder="Adınız Soyadınız">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase tracking-wider mb-2">E-posta</label>
+                    <input type="email" id="register-email" required class="w-full px-5 py-3.5 bg-forest/5 border border-forest/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all" placeholder="ornek@mail.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase tracking-wider mb-2">Şifre</label>
+                    <input type="password" id="register-password" required class="w-full px-5 py-3.5 bg-forest/5 border border-forest/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all" placeholder="En az 6 karakter">
+                </div>
+                <button type="submit" class="w-full bg-gold text-white py-4 rounded-xl font-semibold hover:bg-gold/90 transition-all shadow-lg hover:shadow-xl mt-4 flex justify-center items-center gap-2">
+                    Kayıt Ol
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="index.html" class="text-xs font-semibold text-forest/40 hover:text-gold transition-colors inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Ana Sayfaya Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Kontrol Scripti -->
+    <script src="auth-handler.js?v=2"></script>
+</body>
+</html>

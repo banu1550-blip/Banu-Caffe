@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli | Banu Cafe</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'forest': '#1d3c34',
+                        'gold': '#d4a373',
+                        'cream': '#faf7f2'
+                    },
+                    fontFamily: {
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                        'playfair': ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Modern Scrollbar for Admin Panel */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4a373; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b07240; }
+        .nav-item.active { background-color: rgba(255,255,255,0.1); color: #fff; box-shadow: 2px 0 0 #d4a373 inset; }
+    </style>
+</head>
+<body class="font-montserrat bg-gray-50 text-gray-800 antialiased flex h-screen overflow-hidden">
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center animate-bounce mb-4 shadow-xl">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5A2,2 0 0,0 20,3Z"/>
+            </svg>
+        </div>
+        <p class="font-semibold text-forest text-sm tracking-widest uppercase mb-2">Yetki Kontrol Ediliyor...</p>
+        <p class="text-xs text-gray-400" id="loading-subtext">Lütfen bekleyin</p>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-forest text-white h-full flex flex-col relative z-20 shadow-xl transition-transform duration-300 transform -translate-x-full lg:translate-x-0 absolute lg:relative" id="sidebar">
+        <!-- Logo -->
+        <div class="h-20 flex items-center px-6 border-b border-white/10 shrink-0">
+            <a href="index.html" class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gold flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5A2,2 0 0,0 20,3Z"/></svg>
+                </div>
+                <span class="text-lg font-bold tracking-wider">BANU<span class="text-gold font-light ml-1">ADMIN</span></span>
+            </a>
+            <!-- Mobile Close Button -->
+            <button class="lg:hidden ml-auto text-white/50 hover:text-white" onclick="toggleSidebar()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <p class="px-2 text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">Genel Bakış</p>
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </a>
+            <a href="#" onclick="switchTab('products')" id="nav-products" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
+                <i data-lucide="coffee" class="w-5 h-5"></i> Ürün Yönetimi
+            </a>
+            <a href="#" onclick="switchTab('orders')" id="nav-orders" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i> Siparişler
+            </a>
+            <a href="#" onclick="switchTab('users')" id="nav-users" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
+                <i data-lucide="users" class="w-5 h-5"></i> Müşteriler
+            </a>
+            
+            <p class="px-2 text-xs font-semibold text-white/40 uppercase tracking-widest mt-8 mb-3">Sistem</p>
+            <a href="#" onclick="switchTab('settings')" id="nav-settings" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
+                <i data-lucide="settings" class="w-5 h-5"></i> Ayarlar
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t border-white/10 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gold flex items-center justify-center font-bold text-white shadow-lg">AD</div>
+                <div class="truncate">
+                    <p class="text-sm font-semibold">Admin</p>
+                    <p class="text-[10px] text-white/50 truncate w-32" id="admin-email-display">Yükleniyor...</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-white/50 hover:text-red-400 p-2 transition-colors tooltip" title="Çıkış Yap">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content wrapper -->
+    <main class="flex-1 flex flex-col h-full bg-gray-50 relative z-10 w-full overflow-hidden">
+        
+        <!-- Topbar -->
+        <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-10 shrink-0">
+            <div class="flex items-center gap-4">
+                <button class="lg:hidden p-2 text-gray-500 hover:text-forest transition-colors" onclick="toggleSidebar()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div class="hidden md:flex relative">
+                    <h2 id="topbar-title" class="text-xl font-semibold text-forest font-playfair">Dashboard</h2>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-sm font-medium text-forest/70 hover:text-forest transition-colors px-3 py-1.5 rounded-full border border-gray-200 hover:border-forest/30 flex items-center gap-2">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Siteye Dön
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10" id="main-content-scroll">
+            
+            <!-- ============================ 
+                 VIEW: DASHBOARD
+                 ============================ -->
+            <div id="view-dashboard" class="view-section">
+                <div class="max-w-6xl mx-auto">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Toplam Satış</p>
+                                <h3 id="stat-total-sales" class="text-2xl font-bold text-forest">₺0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-forest/5 flex items-center justify-center text-forest">
+                                <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Yeni Sipariş</p>
+                                <h3 id="stat-new-orders" class="text-2xl font-bold text-forest">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+                                <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Müşteri</p>
+                                <h3 id="stat-total-users" class="text-2xl font-bold text-forest">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500">
+                                <i data-lucide="users" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Aktif Ürünler</p>
+                                <h3 id="stat-active-products" class="text-2xl font-bold text-forest">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
+                                <i data-lucide="coffee" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trending Product Preview-->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-gray-400 bg-gray-50 border-dashed border-2">
+                            <i data-lucide="bar-chart-2" class="w-12 h-12 mb-3 opacity-20"></i>
+                            <p>Satış istatistikleri grafiği bu alana gelecek sürümde eklenecektir.</p>
+                        </div>
+                        <!-- Trending Product -->
+                        <div class="bg-forest rounded-2xl shadow-lg p-6 text-white relative overflow-hidden flex flex-col justify-between">
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-gold/20 rounded-full blur-3xl"></div>
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-start mb-6">
+                                    <h3 class="font-playfair text-xl font-bold">Favori Seçim</h3>
+                                </div>
+                                <h4 class="font-semibold text-lg text-gold mb-2">Yönetim Önerisi</h4>
+                                <p class="text-white/80 text-sm mb-4 leading-relaxed">Kahve stoklarınızı ve son siparişleri düzenli kontrol ederek müşteri memnuniyetini en üst düzeye çıkarın.</p>
+                                <button onclick="switchTab('orders')" class="w-full bg-white/10 hover:bg-white/20 transition-colors py-3 rounded-xl text-sm font-semibold border border-white/20">Siparişlere Git</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================ 
+                 VIEW: PRODUCTS
+                 ============================ -->
+            <div id="view-products" class="view-section hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h2 class="text-xl font-bold text-forest">Tüm Ürünler</h2>
+                        <button onclick="openProductModal()" class="bg-gold text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-gold-500 transition shadow-sm flex items-center gap-2 text-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Yeni Ürün Ekle
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-4">Ürün Adı</th>
+                                        <th class="px-6 py-4">Kategori</th>
+                                        <th class="px-6 py-4">Fiyat</th>
+                                        <th class="px-6 py-4">Durum</th>
+                                        <th class="px-6 py-4 text-right">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table-body" class="divide-y divide-gray-100 text-gray-700">
+                                    <!-- Dinamik Ürünler -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================ 
+                 VIEW: ORDERS
+                 ============================ -->
+            <div id="view-orders" class="view-section hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-forest">Müşteri Siparişleri</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-4">Tarih / ID</th>
+                                        <th class="px-6 py-4">Müşteri Detayı</th>
+                                        <th class="px-6 py-4">Tutar</th>
+                                        <th class="px-6 py-4">Durum GÜncellemesi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-page-table-body" class="divide-y divide-gray-100 text-gray-700">
+                                    <!-- Dinamik Siparişler -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================ 
+                 VIEW: USERS
+                 ============================ -->
+            <div id="view-users" class="view-section hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-forest">Sistem Kullanıcıları</h2>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="px-6 py-4">İsim & Soyisim</th>
+                                    <th class="px-6 py-4">E-posta</th>
+                                    <th class="px-6 py-4">Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="divide-y divide-gray-100">
+                                <tr><td colspan="3" class="px-6 py-4 text-center">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================ 
+                 VIEW: SETTINGS
+                 ============================ -->
+            <div id="view-settings" class="view-section hidden">
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-forest/60">
+                        <i data-lucide="settings" class="w-12 h-12 mx-auto mb-4 opacity-50 text-gold"></i>
+                        <h3 class="text-xl font-semibold text-forest mb-2">Ayarlar Modülü</h3>
+                        <p>Genel mağaza yapılandırmaları ve çalışma saatleri yakın zamanda buraya eklenecektir.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Main Scroll -->
+    </main>
+
+    <!-- Overlay for Mobile Sidebar -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-10 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Modal: Ad/Edit Product -->
+    <div id="product-modal" class="fixed inset-0 bg-forest/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-lg text-forest" id="product-modal-title">Yeni Ürün Ekle</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="product-form" class="p-6 space-y-4" onsubmit="handleProductSubmit(event)">
+                <input type="hidden" id="pd-id">
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase mb-1">Ürün Adı *</label>
+                    <input type="text" id="pd-name" required class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-gold">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase mb-1">Kategori</label>
+                    <input type="text" id="pd-category" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-gold" placeholder="Örn: Sıcak Kahveler">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-forest/70 uppercase mb-1">Fiyat (₺) *</label>
+                    <input type="number" step="0.01" id="pd-price" required class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-gold">
+                </div>
+                <div class="flex items-center gap-2 mt-4">
+                    <input type="checkbox" id="pd-active" checked class="w-4 h-4 text-gold border-gray-300 rounded focus:ring-gold">
+                    <label for="pd-active" class="text-sm font-medium text-forest">Satışta (Aktif)</label>
+                </div>
+                <div class="pt-4 mt-4 border-t border-gray-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-gray-500 font-medium hover:text-gray-800">İptal</button>
+                    <button type="submit" class="px-6 py-2 bg-forest text-white rounded-lg font-semibold hover:bg-forest/90 shadow-md">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Admin Script & Supabase Logic -->
+    <script src="auth-handler.js?v=4"></script>
+    <script>
+        lucide.createIcons();
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        let localProducts = [];
+        let localOrders = [];
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // --- Single Page Navigation ---
+        function switchTab(tabId) {
+            // Update Title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'products': 'Ürün Yönetimi',
+                'orders': 'Siparişler',
+                'users': 'Kayıtlı Profiller',
+                'settings': 'Sistem Ayarları'
+            };
+            document.getElementById('topbar-title').innerText = titles[tabId];
+
+            // Hide all views, show selected
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+
+            // Update Nav Active State
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + tabId).classList.add('active');
+            
+            // Close sidebar on mobile
+            if(window.innerWidth < 1024 && !sidebar.classList.contains('-translate-x-full')) toggleSidebar();
+
+            // Load data dynamically
+            if(tabId === 'products') renderProducts();
+            if(tabId === 'orders') renderOrders();
+            if(tabId === 'users') fetchUsers();
+        }
+
+        // --- Core Entry ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loading = document.getElementById('loading');
+            try {
+                if(!banuSupabase) throw new Error("Veritabanı bağlantısı yok");
+                
+                const { data: { session } } = await banuSupabase.auth.getSession();
+                if (!session || session.user.email !== ADMIN_EMAIL) {
+                    alert("Yönetici yetkiniz bulunmuyor. Anasayfaya yönlendiriliyorsunuz.");
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                document.getElementById('admin-email-display').textContent = session.user.email;
+                document.getElementById('loading-subtext').textContent = "Veriler yükleniyor...";
+                
+                await fetchInitialData();
+                loading.style.opacity = '0';
+                setTimeout(() => loading.style.display = 'none', 300);
+            } catch (e) {
+                console.error("Admin Boot Error:", e);
+                loading.innerHTML = `<p class='text-red-500 font-bold'>Hata: Yetkilendirme başarısız!</p><a href='index.html' class='mt-4 underline text-sm'>Geri Dön</a>`;
+            }
+        });
+
+        // Logout
+        async function logout() {
+            if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+                await banuSupabase.auth.signOut();
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Fetch Data Across App
+        async function fetchInitialData() {
+            try {
+                const { data: products } = await banuSupabase.from('products').select('*').order('created_at', { ascending: false });
+                const { count: usersCount } = await banuSupabase.from('profiles').select('*', { count: 'exact', head: true });
+                const { data: orders } = await banuSupabase.from('orders').select('*').order('created_at', { ascending: false });
+                
+                localProducts = products || [];
+                localOrders = orders || [];
+                
+                updateDashboardStats(localProducts, localOrders, usersCount);
+            } catch (error) {
+                console.error('Initial data fetch error:', error);
+            }
+        }
+
+        function updateDashboardStats(products, orders, usersCount) {
+            let totalSales = 0;
+            let newOrdersCount = 0;
+            
+            orders.forEach(o => {
+                if(o.status === 'Tamamlandı') totalSales += Number(o.total_amount);
+                if(o.status === 'Hazırlanıyor') newOrdersCount++;
+            });
+            
+            document.getElementById('stat-total-sales').textContent = `₺${totalSales.toLocaleString('tr-TR')}`;
+            document.getElementById('stat-new-orders').textContent = newOrdersCount;
+            document.getElementById('stat-total-users').textContent = usersCount || 0;
+            document.getElementById('stat-active-products').textContent = products.filter(p => p.is_active).length;
+        }
+
+        // ==================
+        // USERS CONTROLLER
+        // ==================
+        async function fetchUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center">Yükleniyor...</td></tr>';
+            try {
+                const { data: profiles } = await banuSupabase.from('profiles').select('*').order('created_at', { ascending: false });
+                if(profiles && profiles.length > 0) {
+                    tbody.innerHTML = profiles.map(p => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-forest">${p.full_name || '-'}</td>
+                            <td class="px-6 py-4 text-gray-500">${p.email || 'Bilinmiyor'}</td>
+                            <td class="px-6 py-4"><span class="px-3 py-1 bg-gray-100 text-xs rounded-full">${p.role}</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center">Kullanıcı bulunamadı.</td></tr>';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // ==================
+        // ORDERS CONTROLLER
+        // ==================
+        function renderOrders() {
+            const tbody = document.getElementById('orders-page-table-body');
+            if(localOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center">Sipariş bulunamadı.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = localOrders.map(order => {
+                const date = new Date(order.created_at).toLocaleString('tr-TR', {day: 'numeric', month: 'short', hour:'2-digit', minute:'2-digit'});
+                return `
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="text-xs font-bold text-gray-400">ORD-${order.id.toString().substring(0,5)}</div>
+                        <div class="text-sm font-medium mt-1">${date}</div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-forest">${order.customer_name}</td>
+                    <td class="px-6 py-4 font-bold text-gold">₺${Number(order.total_amount).toLocaleString('tr-TR')}</td>
+                    <td class="px-6 py-4">
+                        <select onchange="updateOrderStatus('${order.id}', this.value)" class="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-forest outline-none cursor-pointer">
+                            <option value="Hazırlanıyor" ${order.status === 'Hazırlanıyor' ? 'selected' : ''}>⏳ Hazırlanıyor</option>
+                            <option value="Kargoda" ${order.status === 'Kargoda' ? 'selected' : ''}>🚚 Kargoda</option>
+                            <option value="Tamamlandı" ${order.status === 'Tamamlandı' ? 'selected' : ''}>✅ Tamamlandı</option>
+                            <option value="İptal Edildi" ${order.status === 'İptal Edildi' ? 'selected' : ''}>❌ İptal Edildi</option>
+                        </select>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const { error } = await banuSupabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+                if(error) throw error;
+                // Update local memory
+                localOrders = localOrders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
+                fetchInitialData(); // Update stats background
+                alert("Sipariş durumu güncellendi!");
+            } catch (e) {
+                console.error(e);
+                alert("Durum güncellenirken hata oluştu.");
+            }
+        }
+
+        // ==================
+        // PRODUCTS CONTROLLER
+        // ==================
+        function renderProducts() {
+            const tbody = document.getElementById('products-table-body');
+            if(localProducts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center">Ürün bulunmuyor.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = localProducts.map(p => `
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="px-6 py-4 font-semibold text-forest">${p.name}</td>
+                    <td class="px-6 py-4 text-gray-500 text-sm">${p.category || '-'}</td>
+                    <td class="px-6 py-4 font-medium">₺${Number(p.price).toLocaleString('tr-TR')}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 text-xs rounded-full ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${p.is_active ? 'Aktif' : 'Pasif'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editProduct('${p.id}')" class="text-blue-500 hover:text-blue-700 px-2 font-medium text-sm">Düzenle</button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 font-medium text-sm">Sil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openProductModal(isEdit = false) {
+            if(!isEdit) {
+                document.getElementById('product-modal-title').innerText = "Yeni Ürün Ekle";
+                document.getElementById('product-form').reset();
+                document.getElementById('pd-id').value = "";
+            }
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function editProduct(id) {
+            const p = localProducts.find(x => x.id === id);
+            if(!p) return;
+            document.getElementById('product-modal-title').innerText = "Ürün Düzenle";
+            document.getElementById('pd-id').value = p.id;
+            document.getElementById('pd-name').value = p.name;
+            document.getElementById('pd-category').value = p.category || '';
+            document.getElementById('pd-price').value = p.price;
+            document.getElementById('pd-active').checked = p.is_active;
+            openProductModal(true);
+        }
+
+        async function handleProductSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('pd-id').value;
+            const name = document.getElementById('pd-name').value;
+            const category = document.getElementById('pd-category').value;
+            const price = parseFloat(document.getElementById('pd-price').value);
+            const is_active = document.getElementById('pd-active').checked;
+            
+            const payload = { name, category, price, is_active };
+
+            try {
+                if (id) {
+                    // Update
+                    await banuSupabase.from('products').update(payload).eq('id', id);
+                } else {
+                    // Insert
+                    await banuSupabase.from('products').insert([payload]);
+                }
+                closeProductModal();
+                await fetchInitialData(); // Reload all data globally
+                renderProducts(); // Refresh current tab
+            } catch (error) {
+                console.error("Save error:", error);
+                alert("Kaydedilirken hata oluştu!");
+            }
+        }
+
+        async function deleteProduct(id) {
+            if(!confirm("Bu ürünü silmek istediğinize emin misiniz? İşlem geri alınamaz.")) return;
+            
+            try {
+                await banuSupabase.from('products').delete().eq('id', id);
+                await fetchInitialData();
+                renderProducts();
+            } catch (e) {
+                console.error(e);
+                alert("Silinirken bir hata oluştu.");
+            }
+        }
+    </script>
+</body>
+</html>
