@@ -1,53 +1,81 @@
 (function() {
-    // Inject CSS
+    console.log("Banu Chatbot: Başlatılıyor...");
+    
+    const initChatbot = () => {
+        if (document.getElementById('banu-chat-widget')) return;
+        console.log("Banu Chatbot: DOM'a enjekte ediliyor...");
+
     const style = document.createElement('style');
     style.innerHTML = `
         .chat-widget {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            z-index: 9999;
+            z-index: 2147483647;
             font-family: 'Montserrat', sans-serif;
+            display: flex !important;
+            flex-direction: column;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+        .chat-widget > * {
+            pointer-events: auto;
         }
         .chat-btn {
-            width: 60px;
-            height: 60px;
-            background: #1d3c34;
+            width: 70px;
+            height: 70px;
+            background: #d4a373;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(29, 60, 52, 0.4);
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid #1d3c34;
+            position: relative;
+        }
+        .chat-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
             border: 2px solid #d4a373;
+            animation: pulse-border 2s infinite;
+            opacity: 0;
+        }
+        @keyframes pulse-border {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
         .chat-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(5deg);
             background: #2d5c4c;
+            box-shadow: 0 15px 35px rgba(29, 60, 52, 0.5);
         }
         .chat-btn svg {
-            width: 30px;
-            height: 30px;
-            fill: #d4a373;
+            width: 35px;
+            height: 35px;
+            fill: #1d3c34;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         .chat-window {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            width: 350px;
-            height: 520px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            width: 380px;
+            height: 580px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             opacity: 0;
             pointer-events: none;
-            transform: translateY(20px);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: translateY(30px) scale(0.9);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid rgba(212, 163, 115, 0.3);
+            margin-bottom: 15px;
         }
         .chat-window.open {
             opacity: 1;
@@ -106,11 +134,17 @@
         }
         .chat-msg {
             max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 15px;
+            padding: 14px 18px;
+            border-radius: 18px;
             font-size: 0.9rem;
-            line-height: 1.4;
+            line-height: 1.5;
             word-wrap: break-word;
+            position: relative;
+            animation: msg-appear 0.4s ease-out forwards;
+        }
+        @keyframes msg-appear {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .chat-msg.bot {
             background: white;
@@ -204,6 +238,7 @@
     // Create Widget Container
     const widget = document.createElement('div');
     widget.className = 'chat-widget';
+    widget.id = 'banu-chat-widget';
     
     widget.innerHTML = `
         <div class="chat-window" id="banu-chat-window">
@@ -217,12 +252,13 @@
                 <button class="close-btn" id="close-chat">&times;</button>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="chat-msg bot">Merhaba! Banu Cafe yapay zeka asistanıyım. Menümüz hakkında bir şeyler sorabilir veya aşağıdaki hazır örnekleri seçebilirsiniz. Hangi kahvenin size uygun olduğunu bulalım! ☕</div>
+                <div class="chat-msg bot">Merhaba! Banu Cafe yapay zeka asistanıyım. Size en uygun kahveyi bulmamda yardımcı olabilirim. Menümüzdeki özel çekirdekler hakkında bilgi almak veya tavsiye istemek için aşağıdaki seçenekleri kullanabilir ya da dilediğinizi yazabilirsiniz. ☕</div>
             </div>
             <div class="chat-options" id="chat-options">
                 <button class="chat-option-btn">İçmek istediğim şeye karar veremiyorum</button>
-                <button class="chat-option-btn">Mevcut ürünlerinizin içeriği nelerdir?</button>
-                <button class="chat-option-btn">En popüler kahveniz hangisi ve fiyatı nedir?</button>
+                <button class="chat-option-btn">Ürünlerinizin içeriği ve detayları nelerdir?</button>
+                <button class="chat-option-btn">En popüler kahveniz hangisi?</button>
+                <button class="chat-option-btn">Kış ayları için sıcak bir tavsiye alabilir miyim?</button>
             </div>
             <div class="chat-input-area">
                 <input type="text" class="chat-input" id="chat-input" placeholder="Bana bir şey sorun..." />
@@ -330,4 +366,12 @@
         }
     });
 
+    console.log("Banu Chatbot: Başarıyla yüklendi.");
+    };
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initChatbot();
+    } else {
+        window.addEventListener('DOMContentLoaded', initChatbot);
+    }
 })();

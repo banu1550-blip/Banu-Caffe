@@ -1,0 +1,5 @@
+.env
+.DS_Store
+node_modules
+.vercel
+Supabase (to be deleted before publishing)
