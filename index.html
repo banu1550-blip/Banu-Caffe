@@ -1279,18 +1279,33 @@
                 typing.style.fontSize = "12px";
                 content.appendChild(typing);
                 
+                if (window.location.protocol === 'file:') {
+                    typing.remove();
+                    addMsg("UYARI: Şu an 'file://' (Yerel Dosya) protokolündesiniz. Chatbotun çalışması için bu dosyayı internetteki vercel.app linkiniz üzerinden açmalısınız. Yerel ortamda API bağlantısı yapılamaz.", 'bot');
+                    return;
+                }
+
                 try {
                     const res = await fetch('/api/chat', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({message: msg})
                     });
+                    
                     const data = await res.json();
                     typing.remove();
-                    addMsg(data.reply || "Bir hata oluştu.", 'bot');
+                    
+                    if (data.error) {
+                        addMsg("API HATASI: " + data.error, 'bot');
+                    } else if (res.status !== 200) {
+                        addMsg("Sunucu Hatası: " + res.status, 'bot');
+                    } else {
+                        addMsg(data.reply || "Bir yanıt alınamadı.", 'bot');
+                    }
                 } catch(e) {
                     typing.remove();
-                    addMsg("Bağlantı hatası.", 'bot');
+                    addMsg("BAĞLANTI HATASI: Sunucuya ulaşılamadı. Lütfen internet bağlantınızı ve Vercel linkini kontrol edin.", 'bot');
+                    console.error(e);
                 }
             }
         })();
