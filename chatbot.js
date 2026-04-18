@@ -36,7 +36,7 @@
             bottom: 80px;
             right: 0;
             width: 350px;
-            height: 500px;
+            height: 520px;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.15);
@@ -66,7 +66,7 @@
         .chat-header h3 {
             margin: 0;
             font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -110,6 +110,7 @@
             border-radius: 15px;
             font-size: 0.9rem;
             line-height: 1.4;
+            word-wrap: break-word;
         }
         .chat-msg.bot {
             background: white;
@@ -126,25 +127,26 @@
             border-bottom-right-radius: 5px;
             box-shadow: 0 4px 10px rgba(29, 60, 52, 0.2);
         }
+        .chat-msg.typing {
+            font-style: italic;
+            opacity: 0.7;
+        }
         .chat-options {
-            padding: 15px;
+            padding: 12px 15px 5px;
             background: white;
-            border-top: 1px solid rgba(212, 163, 115, 0.2);
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 180px;
-            overflow-y: auto;
         }
         .chat-option-btn {
             background: transparent;
             border: 1px solid #d4a373;
             color: #d4a373;
-            padding: 10px 15px;
-            border-radius: 20px;
+            padding: 8px 12px;
+            border-radius: 15px;
             text-align: left;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             transition: all 0.3s;
             font-family: inherit;
         }
@@ -152,50 +154,48 @@
             background: #d4a373;
             color: white;
         }
-        .chat-product {
+        .chat-input-area {
             display: flex;
-            gap: 12px;
-            align-items: center;
-            background: #f5f0eb;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 12px;
-            text-decoration: none;
-            color: #1d3c34;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        .chat-product:hover {
+            padding: 10px 15px 15px;
             background: white;
+            border-top: none;
+            gap: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        .chat-input:focus {
             border-color: #d4a373;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 163, 115, 0.2);
         }
-        .chat-product img {
-            width: 45px;
-            height: 45px;
+        .chat-send-btn {
+            background: #d4a373;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #d4a373;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
         }
-        .chat-product-info h4 {
-            margin: 0;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #1d3c34;
-        }
-        .chat-product-info p {
-            margin: 0;
-            font-size: 0.75rem;
-            color: #b07240;
-            margin-top: 2px;
+        .chat-send-btn:hover {
+            background: #c48a55;
         }
         @media (max-width: 480px) {
             .chat-window {
                 width: 300px;
                 right: -10px;
                 bottom: 75px;
-                height: 450px;
+                height: 480px;
             }
         }
     `;
@@ -209,20 +209,28 @@
         <div class="chat-window" id="banu-chat-window">
             <div class="chat-header">
                 <h3>
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    Banu Asistan
+                    Banu Al Asistan (Gemini)
                 </h3>
                 <button class="close-btn" id="close-chat">&times;</button>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="chat-msg bot">Merhaba! Banu Cafe'ye hoş geldiniz, size nasıl yardımcı olabilirim? ☕ Lütfen bir seçenek belirleyin.</div>
+                <div class="chat-msg bot">Merhaba! Banu Cafe yapay zeka asistanıyım. Menümüz hakkında bir şeyler sorabilir veya aşağıdaki hazır örnekleri seçebilirsiniz. Hangi kahvenin size uygun olduğunu bulalım! ☕</div>
             </div>
             <div class="chat-options" id="chat-options">
-                <button class="chat-option-btn" data-action="kararsiz">İçmek istediğim şeye karar veremiyorum</button>
-                <button class="chat-option-btn" data-action="icerik">Mevcut kahvelerin içeriğini öğrenmek istiyorum</button>
-                <button class="chat-option-btn" data-action="populer">En popüler kahveniz hangisi?</button>
+                <button class="chat-option-btn">İçmek istediğim şeye karar veremiyorum</button>
+                <button class="chat-option-btn">Mevcut ürünlerinizin içeriği nelerdir?</button>
+                <button class="chat-option-btn">En popüler kahveniz hangisi ve fiyatı nedir?</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Bana bir şey sorun..." />
+                <button class="chat-send-btn" id="chat-send-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
             </div>
         </div>
         <div class="chat-btn" id="open-chat">
@@ -239,6 +247,10 @@
     const closeBtn = widget.querySelector('#close-chat');
     const messagesContainer = widget.querySelector('#chat-messages');
     const optionsContainer = widget.querySelector('#chat-options');
+    const inputField = widget.querySelector('#chat-input');
+    const sendBtn = widget.querySelector('#chat-send-btn');
+
+    let chatHistory = [];
 
     chatBtn.addEventListener('click', () => {
         chatWindow.classList.toggle('open');
@@ -251,129 +263,71 @@
     const addMessage = (text, type = 'bot') => {
         const msg = document.createElement('div');
         msg.className = \`chat-msg \${type}\`;
-        msg.innerHTML = text;
+        msg.innerText = text;
         messagesContainer.appendChild(msg);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return msg;
     };
 
-    const updateOptions = (htmlContent) => {
-        if(htmlContent) {
-            optionsContainer.innerHTML = htmlContent;
-        } else {
-            optionsContainer.innerHTML = \`
-                <button class="chat-option-btn" data-action="reset">Farklı bir şey sormak istiyorum</button>
-            \`;
-        }
-        attachOptionListeners();
-    };
-
-    const handleAction = (action, elementText) => {
-        // Add user selected text
-        addMessage(elementText, 'user');
-
-        setTimeout(() => {
-            if (action === 'kararsiz') {
-                addMessage("Anlıyorum! Bugün nasıl bir tat aradığınızı söylerseniz, mükemmel kahveyi bulmanıza yardımcı olayım.");
-                updateOptions(\`
-                    <button class="chat-option-btn" data-action="sicak_yogun">Sıcak, yoğun ve uyandırıcı bir şeyler</button>
-                    <button class="chat-option-btn" data-action="soguk_ferah">Soğuk, serinletici ve tatlı bir şeyler</button>
-                    <button class="chat-option-btn" data-action="hafif_meyve">Hafif, yumuşak veya meyvemsi tatlar</button>
-                \`);
-            } 
-            else if (action === 'sicak_yogun') {
-                let html = "Sıcak ve yoğun bir deneyim için altın oran <strong>Banu Signature Blend</strong> filtre kahvemiz ya da yoğun <strong>Colombia Supremo</strong> önerebilirim.<br>";
-                html += \`
-                    <a href="menu.html" class="chat-product">
-                        <img src="https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=100&q=80" alt="Banu Blend">
-                        <div class="chat-product-info">
-                            <h4>Banu Signature Blend</h4>
-                            <p>Çikolata, Tarçın Notaları (₺349)</p>
-                        </div>
-                    </a>
-                \`;
-                addMessage(html);
-                updateOptions();
-            }
-            else if (action === 'soguk_ferah') {
-                 let html = "Sıcak havaların veya ferahlamak isteyenlerin tercihi <strong>Cold Brew Konsantre</strong>! Üzerine buz ve süt ekleyerek harika olur.<br>";
-                html += \`
-                    <a href="menu.html" class="chat-product">
-                        <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=100&q=80" alt="Cold Brew">
-                        <div class="chat-product-info">
-                            <h4>Cold Brew Konsantre</h4>
-                            <p>Vanilya, Meşe Notaları (₺199)</p>
-                        </div>
-                    </a>
-                \`;
-                addMessage(html);
-                 updateOptions();
-            }
-            else if (action === 'hafif_meyve') {
-                let html = "Çiçeksi aromalar ve taze meyve asiditesi arıyorsanız, tek kökenli <strong>Etiyopya Yirgacheffe</strong> çekirdekleri damağınızı şenlendirecektir.<br>";
-                html += \`
-                    <a href="menu.html" class="chat-product">
-                        <img src="https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=100&q=80" alt="Etiyopya">
-                        <div class="chat-product-info">
-                            <h4>Etiyopya Yirgacheffe</h4>
-                            <p>Çiçeksi, Narenciye (₺289)</p>
-                        </div>
-                    </a>
-                \`;
-                addMessage(html);
-                updateOptions();
-            }
-            else if (action === 'icerik') {
-                 addMessage("Tabii ki! Hangi kahvemizin içerik detayını öğrenmek istersiniz?");
-                 updateOptions(\`
-                    <button class="chat-option-btn" data-action="icerik_blend">Banu Signature Blend</button>
-                    <button class="chat-option-btn" data-action="icerik_colombia">Colombia Supremo</button>
-                    <button class="chat-option-btn" data-action="icerik_sutlu">Sütlü İçecekler (Latte vb.)</button>
-                \`);
-            }
-             else if (action === 'icerik_blend') {
-                 addMessage("<strong>Banu Signature Blend</strong>: Evimizin incisi olan bu harman; %60 Brezilya (Cerrado), %40 Guatemala (Antigua) arabica çekirdeklerinden oluşur. İlave bir aroma maddesi <b>içermez</b>, tadını tamamen orta-koyu kavurma profilindeki bitter çikolata ve doğal tarçın notalarından alır.");
-                 updateOptions();
-             }
-              else if (action === 'icerik_colombia') {
-                 addMessage("<strong>Colombia Supremo</strong>: Sadece yıkanmış saf Kolombiya Supremo 17/18 elek arabica çekirdekleri kullanılır. Tamamen vegan ve doğal olup, yüksek rakımdan dolayı karamelize ve kuruyemiş (fındık) profili barındırır. Hiçbir katkı maddesi yoktur.");
-                 updateOptions();
-             }
-              else if (action === 'icerik_sutlu') {
-                 addMessage("<strong>Sütlü İçecekler (Latte, Flat White)</strong>: Standart olarak %3 tam yağlı taze inek sütü ile klasik yoğun espressomuzdan hazırlanır. Dilerseniz <i>Badem, Yulaf, veya Soya sütü</i> ile laktozsuz ve vegan olarak da talep edebilirsiniz.");
-                 updateOptions();
-             }
-            else if (action === 'populer') {
-                let html = "Müşterilerimizin vazgeçilmezi ve en çok sipariş edilen ürünümüz <strong>Banu Signature Blend</strong>! Günün her saati için ideal ve çok dengeli bir içime sahiptir.<br>";
-                html += \`
-                    <a href="menu.html" class="chat-product">
-                        <img src="https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=100&q=80" alt="Banu Blend">
-                        <div class="chat-product-info">
-                            <h4>Banu Signature Blend</h4>
-                            <p>En Çok Satan - Klasik (₺349)</p>
-                        </div>
-                    </a>
-                \`;
-                addMessage(html);
-                updateOptions();
-            }
-            else if (action === 'reset') {
-                updateOptions(\`
-                    <button class="chat-option-btn" data-action="kararsiz">İçmek istediğim şeye karar veremiyorum</button>
-                    <button class="chat-option-btn" data-action="icerik">Mevcut kahvelerin içeriğini öğrenmek istiyorum</button>
-                    <button class="chat-option-btn" data-action="populer">En popüler kahveniz hangisi?</button>
-                \`);
-            }
-        }, 500); // 0.5 sec delay for natural reading
-    };
-
-    function attachOptionListeners() {
-        const buttons = optionsContainer.querySelectorAll('.chat-option-btn');
-        buttons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                handleAction(e.target.dataset.action, e.target.textContent);
+    const sendMessageToGemini = async (text) => {
+        addMessage(text, 'user');
+        optionsContainer.style.display = 'none'; // Hide template buttons on first chat
+        
+        chatHistory.push({ role: 'user', content: text });
+        
+        const typingMsg = addMessage("Asistan yazıyor...", 'bot typing');
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, history: chatHistory.slice(0, -1) }) // Pass history excluding current
             });
-        });
-    }
+            
+            const data = await response.json();
+            
+            typingMsg.remove();
+            
+            if (response.ok && data.reply) {
+                addMessage(data.reply, 'bot');
+                chatHistory.push({ role: 'model', content: data.reply });
+            } else {
+                addMessage("Üzgünüm, şu an bağlantı kuramıyorum. Lütfen daha sonra tekrar deneyin.", 'bot');
+                console.error("Gemini Hatası:", data.error);
+            }
+        } catch (error) {
+            typingMsg.remove();
+            addMessage("Sunucuya ulaşılamadı.", 'bot');
+            console.error("İstek Hatası:", error);
+        }
+    };
 
-    attachOptionListeners();
+    // Template Button Listeners
+    const optionButtons = optionsContainer.querySelectorAll('.chat-option-btn');
+    optionButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const text = e.target.innerText;
+            sendMessageToGemini(text);
+        });
+    });
+
+    // Input Listeners
+    sendBtn.addEventListener('click', () => {
+        const text = inputField.value.trim();
+        if (text) {
+            inputField.value = '';
+            sendMessageToGemini(text);
+        }
+    });
+
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const text = inputField.value.trim();
+            if (text) {
+                inputField.value = '';
+                sendMessageToGemini(text);
+            }
+        }
+    });
+
 })();
