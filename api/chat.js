@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         Müşterilere sanki lüks bir butik kahve dükkanındaymış gibi hissettir. İşte ürünlerimiz: Signature Blend (349 TL), Colombia Supremo (329 TL), Etiyopya Yirgacheffe (289 TL), Cold Brew (199 TL).
         Sade metin olarak cevap ver, markdown kullanma.`;
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const geminiResponse = await fetch(apiUrl, {
             method: 'POST',
