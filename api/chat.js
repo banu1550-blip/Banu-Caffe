@@ -1,3 +1,4 @@
+// Gemini 2.5 Flash API Handler - Banu Cafe
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
